@@ -87,9 +87,20 @@ class TextFrame(ttk.Frame):
 
     def paragraph(self):
         """Insert paragraph break at cursor position using html tags."""
-        position = self.input_text.index("insert")
+        position = self.cursor_position()
         text = "</p><p>"
         self.input_text.insert(position, text)
+    
+    def horizontal_rule(self):
+        """Insert horizontal rule at cursor position using html tags."""
+        position = self.cursor_position()
+        text = "</p><hr><p>"
+        self.input_text.insert(position, text)
+    
+    def cursor_position(self):
+        """Return the cursor position in the text box."""
+        position = self.input_text.index("insert")
+        return position
     
     def __create_widgets(self):
         options = {"padx": 5, "pady": 5}
@@ -101,8 +112,10 @@ class TextFrame(ttk.Frame):
         self.output_text.grid(row=0, column=1, **options)
     
     def __create_bindings(self):
-        """Bind paragrah function to Ctrl+p"""
+        """Hotkeys bindings"""
         self.input_text.bind("<Control_L> p", lambda event: self.paragraph())
+        self.input_text.bind("<Control_L> h", lambda event: self.horizontal_rule())
+        
 
 
 
