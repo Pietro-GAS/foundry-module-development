@@ -1,5 +1,19 @@
 import tkinter as tk
 from tkinter import ttk
+import json
+
+SETTINGS_FILE = "settings.json"
+
+with open(SETTINGS_FILE) as f:
+            try:
+                data = json.load(f)
+                REPLACEMENTS = data["replacements"]
+                KEY_WORDS = data["key_words"]
+                #print(data)
+                #print(replacements)
+                #print(key_words)
+            except:
+                print('Fail!\n')
 
 
 class ButtonFrame(ttk.Frame):
@@ -17,13 +31,13 @@ class ButtonFrame(ttk.Frame):
         self.format_button["command"] = lambda: self.print_text()
         self.format_button.grid(row=0, column=0, **options)
         
-        setattr(self, "format_button", ttk.Button(self, text="Format"))
-        self.format_button["command"] = lambda: self.print_text()
-        self.format_button.grid(row=0, column=0, **options)
+        setattr(self, "clear_button", ttk.Button(self, text="Clear Input"))
+        self.clear_button["command"] = lambda: self.clear_input()
+        self.clear_button.grid(row=0, column=1, **options)
         
-        setattr(self, "clean_button", ttk.Button(self, text="Clean"))
+        setattr(self, "clean_button", ttk.Button(self, text="Clean Output"))
         self.clean_button["command"] = lambda: self.clean_text()
-        self.clean_button.grid(row=0, column=1, **options)
+        self.clean_button.grid(row=0, column=2, **options)
     
     def copy_text(self):
         """Copy text from the input text field."""
@@ -38,9 +52,19 @@ class ButtonFrame(ttk.Frame):
         formatted_text = formatted_text.replace("  ", " ")
         # remove spaces at beginning and end
         formatted_text = formatted_text.strip()
+        # if the first word is a key word, make it bold
+        formatted_text = self.first_word_check(formatted_text, KEY_WORDS)
         # insert html tags
         formatted_text = f"<p>{formatted_text}</p>"
         return formatted_text
+        
+    def first_word_check(self, text, words):
+        first_space = text.find(" ")
+        first_word = text[:first_space]
+        if first_word in words:
+            first_word = f"<strong>{first_word}</strong>"
+            text = first_word + text[first_space:]
+        return text
     
     def print_text(self):
         """Copy, format, then print text to output field."""
@@ -49,25 +73,30 @@ class ButtonFrame(ttk.Frame):
         self.target_frame.output_text.delete('1.0', tk.END)
         self.target_frame.output_text.insert('1.0', formatted_text)
     
+    def clear_input(self):
+        """Clear text from the input field"""
+        self.target_frame.input_text.delete('1.0', tk.END)
+        #self.target_frame.output_text.delete('1.0', tk.END)
+    
     def clean_text(self):
         """Apply additional formatting fixes to the output text field."""
-        replacements = {
-            "  ": " ", 
-            " ?": "?", 
-            " !": "!", 
-            " ,": ",", 
-            " ;": ";", 
-            " :": ":",
-            " .": ".", 
-            "\n": " ",
-            "<p> ": "<p>", 
-            "</p> ": "</p>",
-            " <p>": "<p>", 
-            " </p>": "</p>"
-        }
+        #replacements = {
+        #    "  ": " ", 
+        #    " ?": "?", 
+        #    " !": "!", 
+        #    " ,": ",", 
+        #    " ;": ";", 
+        #    " :": ":",
+        #    " .": ".", 
+        #    "\n": " ",
+        #    "<p> ": "<p>", 
+        #    "</p> ": "</p>",
+        #    " <p>": "<p>", 
+        #    " </p>": "</p>"
+        #}
         text = self.target_frame.output_text.get('1.0', tk.END)
 
-        for i, j in replacements.items():
+        for i, j in REPLACEMENTS.items():
             text = text.replace(i, j)
         
         self.target_frame.output_text.delete('1.0', tk.END)
@@ -114,7 +143,7 @@ class TextFrame(ttk.Frame):
     def __create_bindings(self):
         """Hotkeys bindings"""
         self.input_text.bind("<Control_L> p", lambda event: self.paragraph())
-        self.input_text.bind("<Control_L> h", lambda event: self.horizontal_rule())
+        self.input_text.bind("<Control_L> r", lambda event: self.horizontal_rule())
         
 
 
